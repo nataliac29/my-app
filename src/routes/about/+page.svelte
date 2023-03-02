@@ -1,3 +1,4 @@
+<!-- CODE ADAPTED FROM: https://svelte.dev/repl/801ec208ac3a44a5880ea4c31703b39f?version=3.45.0 -->
 <script>
 	let columns = new Array(7);
 	let rows = new Array(30);
