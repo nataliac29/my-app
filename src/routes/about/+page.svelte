@@ -4,12 +4,21 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET FROM: https://github.com/dwyl/learn-to-
 -->
 <script>
 	// import Modal from "./Modal.svelte";
-	import { Button, Modal, ModalBody, ModalFooter } from "sveltestrap";
+	import { Button, Modal, ModalBody, ModalFooter, Table } from "sveltestrap";
 	let showModal = true;
 
 	let columns = new Array(7);
 	let rows = new Array(30);
 	let state = new Array(rows.length * columns.length).fill("");
+	let daysOfWeek = [
+		"Monday",
+		"Tuesday",
+		"Wednesday",
+		"Thursday",
+		"Friday",
+		"Saturday",
+		"Sunday",
+	];
 	let isDrag = false;
 	let isYard = true;
 	let isSeas = false;
@@ -81,24 +90,6 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET FROM: https://github.com/dwyl/learn-to-
 		isOpen = !isOpen;
 		startTime = Date.now();
 	};
-
-	let conditionalAttributesForYard = {};
-
-	if (isYard) {
-		conditionalAttributesForYard.style =
-			"border-color: yellow; border-style: solid; border-width: medium;";
-	} else {
-		conditionalAttributesForYard.style = "";
-	}
-
-	let conditionalAttributesForSEAS = {};
-
-	if (isSeas) {
-		conditionalAttributesForSEAS.style =
-			"border-color: yellow; border-style: solid; border-width: medium;";
-	} else {
-		conditionalAttributesForYard.style = "";
-	}
 </script>
 
 <svelte:head>
@@ -145,52 +136,53 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET FROM: https://github.com/dwyl/learn-to-
 
 <div class:container={true}>
 	<Button
-		color="primary"
-		on:click={changeLocation}
-		{...conditionalAttributesForYard}>YARD</Button
+		color={isYard ? "primary" : "secondary"}
+		disabled={isYard ? true : false}
+		on:click={changeLocation}>YARD</Button
 	>
-	<Button color="success" on:click={changeLocation}>SEAS</Button>
+	<Button
+		on:click={changeLocation}
+		color={isSeas ? "success" : "secondary"}
+		disabled={isSeas ? true : false}>SEAS</Button
+	>
 
-	<table>
-		{#each rows as _row, r}
+	<Table bordered>
+		<thead>
 			<tr>
-				{#each columns as _column, c}
-					<td
-						on:mousedown={mouseHandler(r, c)}
-						on:mouseenter={mouseHandler(r, c)}
-						class:seas={state[r * columns.length + c] == "s"}
-						class:yard={state[r * columns.length + c] == "y"}
-					/>
+				{#each daysOfWeek as day, i}
+					<td>{day}</td>
 				{/each}
 			</tr>
-		{/each}
-	</table>
+		</thead>
+		<tbody>
+			{#each rows as _row, r}
+				<tr>
+					{#each columns as _column, c}
+						<td
+							style="margin: 5px;"
+							on:mousedown={mouseHandler(r, c)}
+							on:mouseenter={mouseHandler(r, c)}
+							class:seas={state[r * columns.length + c] == "s"}
+							class:yard={state[r * columns.length + c] == "y"}
+						/>
+					{/each}
+				</tr>
+			{/each}
+		</tbody>
+	</Table>
 </div>
 
 <style>
-	.container {
-		display: flex;
-		flex-direction: row;
-	}
 	td {
 		width: 20px;
 		height: 20px;
 		background-color: pink;
+		margin-right: 5px;
 	}
 	.seas {
 		background-color: green;
 	}
 	.yard {
 		background-color: blue;
-	}
-	table {
-		border-spacing: 1px;
-		width: 100%;
-	}
-	.button-selected {
-		background-color: green;
-	}
-	button {
-		background-color: red;
 	}
 </style>
