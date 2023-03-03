@@ -3,8 +3,14 @@ CODE FOR MODAL ADAPTED FROM: https://svelte.dev/examples/modal
 CODE FOR UPLOADING TIMES TO GOOGLE SHEET FROM: https://github.com/dwyl/learn-to-send-email-via-google-script-html-no-server
 -->
 <script>
-	import Modal from "./Modal.svelte";
-
+	// import Modal from "./Modal.svelte";
+	import {
+		Button,
+		Modal,
+		ModalBody,
+		ModalFooter,
+		ModalHeader,
+	} from "sveltestrap";
 	let showModal = true;
 
 	let columns = new Array(7);
@@ -30,7 +36,7 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET FROM: https://github.com/dwyl/learn-to-
 		isSeas = !isSeas;
 	};
 
-	const toggle = (r, c) => {
+	const mouseToggle = (r, c) => {
 		if (isSeas && state[r * columns.length + c] == "s") {
 			state[r * columns.length + c] = "";
 		} else if (isYard && state[r * columns.length + c] == "y") {
@@ -42,13 +48,13 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET FROM: https://github.com/dwyl/learn-to-
 
 	const mouseHandler = (r, c) => (e) => {
 		if (isDrag || e.type === "mousedown") {
-			toggle(r, c);
+			mouseToggle(r, c);
 		}
 	};
 
 	// when "DONE" button is clicked
 	const clickHandler = () => {
-		showModal = true;
+		isOpen = true;
 		endTime = Date.now();
 		let difference = Math.abs(endTime - startTime);
 		timer = difference / 1000;
@@ -73,11 +79,23 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET FROM: https://github.com/dwyl/learn-to-
 			.join("&");
 		xhr.send(encoded);
 	};
+
+	let isOpen = true;
+	let fullscreen = true;
+	const toggle = () => {
+		fullscreen = true;
+		isOpen = !isOpen;
+		startTime = Date.now();
+	};
 </script>
 
 <svelte:head>
 	<title>About</title>
 	<meta name="description" content="About this app" />
+	<link
+		rel="stylesheet"
+		href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css"
+	/>
 </svelte:head>
 
 <svelte:window
@@ -85,16 +103,33 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET FROM: https://github.com/dwyl/learn-to-
 	on:mouseup={endDrag}
 	on:keypress={(e) => e.key == "q" && changeLocation()}
 />
+<div hidden={!isOpen}>
+	<Button color="primary" on:click={toggle}>Hello World!</Button>
+</div>
+<Modal
+	body
+	{isOpen}
+	{toggle}
+	header="Start your timer!"
+	backdrop="static"
+	keyboard={false}
+	{fullscreen}
+	class="modal-dialog"
+>
+	<ModalBody>
+		Click the "Start!" to start the time (or exit the modal), and when you're
+		done, click the "Done" button to stop the time
+	</ModalBody>
+	<ModalFooter>
+		<Button color="primary" on:click={toggle}>Start!</Button>
+	</ModalFooter>
+</Modal>
 
 <!-- Button for indicating done inputting availability  -->
-<button on:click={clickHandler} type="submit"> DONE </button>
 
-<Modal bind:showModal bind:startTime>
-	<p>
-		Click the "Start Button" to start the time, and when you're done, click the
-		"done" button to stop the time
-	</p>
-</Modal>
+<Button on:click={clickHandler} type="submit" color="danger" size="sm"
+	>DONE</Button
+>
 
 <div class:container={true}>
 	<button on:click={changeLocation} class:button-selected={isYard}>
