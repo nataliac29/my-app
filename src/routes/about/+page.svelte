@@ -1,6 +1,6 @@
 <!-- CODE FOR DRAGGIN ADAPTED FROM: https://svelte.dev/repl/801ec208ac3a44a5880ea4c31703b39f?version=3.45.0 
 CODE FOR MODAL ADAPTED FROM: https://svelte.dev/examples/modal
-CODE FOR UPLOADING TIMES TO GOOGLE SHEET FROM: https://github.com/dwyl/learn-to-send-email-via-google-script-html-no-server
+CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/learn-to-send-email-via-google-script-html-no-server
 -->
 <script>
 	// import Modal from "./Modal.svelte";
@@ -10,6 +10,8 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET FROM: https://github.com/dwyl/learn-to-
 	let columns = new Array(7);
 	let rows = new Array(30);
 	let state = new Array(rows.length * columns.length).fill("");
+	let freeState = new Array(rows.length * columns.length).fill("free");
+
 	let daysOfWeek = [
 		"Monday",
 		"Tuesday",
@@ -46,11 +48,13 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET FROM: https://github.com/dwyl/learn-to-
 		if (!clicked[r * columns.length + c]){
 			if (isSeas && state[r * columns.length + c] == "s") {
 				state[r * columns.length + c] = "";
+				freeState[r * columns.length + c] = "free";
 			} else if (isYard && state[r * columns.length + c] == "y") {
 				state[r * columns.length + c] = "";
+				freeState[r * columns.length + c] = "free";
 			} else {
 				state[r * columns.length + c] = isSeas ? "s" : "y";
-				clicked[r * columns.length + c] = true;
+				freeState[r * columns.length + c] = "";
 			}
 		}
 	};
@@ -138,12 +142,7 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET FROM: https://github.com/dwyl/learn-to-
 </Modal>
 
 <!-- Button for indicating done inputting availability  -->
-
-<Button on:click={clickHandler} type="submit" color="danger" size="sm"
-	>DONE</Button
->
-
-<div class:container={true}>
+<div class:bigContainer={true}>
 	<Button
 		color={isYard ? "primary" : "secondary"}
 		disabled={isYard ? true : false}
@@ -155,37 +154,80 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET FROM: https://github.com/dwyl/learn-to-
 		disabled={isSeas ? true : false}>SEAS</Button
 	>
 
-	<Table bordered>
-		<thead>
-			<tr>
-				{#each daysOfWeek as day, i}
-					<td>{day}</td>
-				{/each}
-			</tr>
-		</thead>
-		<tbody>
-			{#each rows as _row, r}
+	<div class:container={true}>
+		<Table bordered>
+			<caption>When are you busy?</caption>
+
+			<thead>
 				<tr>
-					{#each columns as _column, c}
-						<td
-							style="margin: 5px;"
-							on:mousedown={mouseHandler(r, c)}
-							on:mouseenter={mouseHandler(r, c)}
-							class:seas={state[r * columns.length + c] == "s"}
-							class:yard={state[r * columns.length + c] == "y"}
-						/>
+					{#each daysOfWeek as day, i}
+						<td>{day}</td>
 					{/each}
 				</tr>
-			{/each}
-		</tbody>
-	</Table>
+			</thead>
+			<tbody>
+				{#each rows as _row, r}
+					<tr>
+						{#each columns as _column, c}
+							<td
+								style="margin: 5px;"
+								on:mousedown={mouseHandler(r, c)}
+								on:mouseenter={mouseHandler(r, c)}
+								class:seas={state[r * columns.length + c] == "s"}
+								class:yard={state[r * columns.length + c] == "y"}
+							/>
+						{/each}
+					</tr>
+				{/each}
+			</tbody>
+		</Table>
+		<Table bordered>
+			<caption>When you are free!</caption>
+
+			<thead>
+				<tr>
+					{#each daysOfWeek as day, i}
+						<td>{day}</td>
+					{/each}
+				</tr>
+			</thead>
+			<tbody>
+				{#each rows as _row, r}
+					<tr>
+						{#each columns as _column, c}
+							<td
+								style="margin: 5px;"
+								class:free={freeState[r * columns.length + c] == "free"}
+							/>
+						{/each}
+					</tr>
+				{/each}
+			</tbody>
+		</Table>
+	</div>
+	<Button on:click={clickHandler} type="submit" color="danger" size="lg"
+		>DONE</Button
+	>
 </div>
 
 <style>
+	.bigContainer {
+		width: 100%;
+		max-width: 1200px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+	.container {
+		display: flex;
+		flex-direction: row;
+		justify-content: center;
+		width: 1200px;
+	}
 	td {
-		width: 20px;
-		height: 20px;
-		background-color: pink;
+		width: 5px;
+		height: 5px;
+		background-color: white;
 		margin-right: 5px;
 	}
 	.seas {
@@ -193,5 +235,8 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET FROM: https://github.com/dwyl/learn-to-
 	}
 	.yard {
 		background-color: blue;
+	}
+	.free {
+		background-color: yellow;
 	}
 </style>
