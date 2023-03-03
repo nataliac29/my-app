@@ -25,13 +25,16 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET FROM: https://github.com/dwyl/learn-to-
 	let endTime = null;
 	let startTime = null;
 	let timer = 0;
+	let clicked = new Array(rows.length * columns.length).fill(false);		// keeps track of selected cells in one click
 
 	const beginDrag = () => {
 		isDrag = true;
+		clicked.fill(false);
 	};
 
 	const endDrag = () => {
 		isDrag = false;
+		clicked.fill(false);
 	};
 
 	const changeLocation = () => {
@@ -40,18 +43,24 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET FROM: https://github.com/dwyl/learn-to-
 	};
 
 	const mouseToggle = (r, c) => {
-		if (isSeas && state[r * columns.length + c] == "s") {
-			state[r * columns.length + c] = "";
-		} else if (isYard && state[r * columns.length + c] == "y") {
-			state[r * columns.length + c] = "";
-		} else {
-			state[r * columns.length + c] = isSeas ? "s" : "y";
+		if (!clicked[r * columns.length + c]){
+			if (isSeas && state[r * columns.length + c] == "s") {
+				state[r * columns.length + c] = "";
+			} else if (isYard && state[r * columns.length + c] == "y") {
+				state[r * columns.length + c] = "";
+			} else {
+				state[r * columns.length + c] = isSeas ? "s" : "y";
+				clicked[r * columns.length + c] = true;
+			}
 		}
 	};
 
 	const mouseHandler = (r, c) => (e) => {
 		if (isDrag || e.type === "mousedown") {
 			mouseToggle(r, c);
+		}
+		if (e.type === "mousedown") {
+			clicked[r * columns.length + c] = true;
 		}
 	};
 
