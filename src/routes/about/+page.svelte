@@ -55,6 +55,7 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 			} else {
 				state[r * columns.length + c] = isSeas ? "s" : "y";
 				freeState[r * columns.length + c] = "";
+				clicked[r * columns.length + c] = true;
 			}
 		}
 	};
