@@ -1,4 +1,7 @@
-<!-- CODE ADAPTED FROM: https://svelte.dev/repl/801ec208ac3a44a5880ea4c31703b39f?version=3.45.0 -->
+<!-- CODE FOR DRAGGIN ADAPTED FROM: https://svelte.dev/repl/801ec208ac3a44a5880ea4c31703b39f?version=3.45.0 
+CODE FOR MODAL ADAPTED FROM: https://svelte.dev/examples/modal
+CODE FOR UPLOADING TIMES TO GOOGLE SHEET FROM: https://github.com/dwyl/learn-to-send-email-via-google-script-html-no-server
+-->
 <script>
 	import Modal from "./Modal.svelte";
 
@@ -43,18 +46,32 @@
 		}
 	};
 
+	// when "DONE" button is clicked
 	const clickHandler = () => {
 		showModal = true;
 		endTime = Date.now();
-		// console.log("HERE, DONE CLICK HANDLER");
-		// console.log("START TIME");
-		// console.log(startTime);
-		// console.log("END TIME");
-		// console.log(endTime);
 		let difference = Math.abs(endTime - startTime);
 		timer = difference / 1000;
-		// console.log("DIFFERENCE IN SECONDS");
-		// console.log(timer);
+		var formData = {};
+		formData["message"] = timer.toString();
+		formData.formDataNameOrder = JSON.stringify(["message"]);
+		formData.formGoogleSheetName = "responses"; // default sheet name
+		formData.formGoogleSendEmail = "ncalvo@college.harvard.edu"; // no email by default
+
+		// link to Google script that uploads data to Google Sheet
+		var url =
+			"https://script.google.com/macros/s/AKfycbxmP2lKcfwf10uL-Ghknowoe2S-E9IHtFY5ZhQrG1QCNQdK-ucPqE4QUud_oHDFrE6pdA/exec";
+		var xhr = new XMLHttpRequest();
+
+		xhr.open("POST", url);
+		xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+		// url encode form data for sending as post data
+		var encoded = Object.keys(formData)
+			.map(function (k) {
+				return encodeURIComponent(k) + "=" + encodeURIComponent(formData[k]);
+			})
+			.join("&");
+		xhr.send(encoded);
 	};
 </script>
 
@@ -68,23 +85,9 @@
 	on:mouseup={endDrag}
 	on:keypress={(e) => e.key == "q" && changeLocation()}
 />
-<form
-	class="gform"
-	method="POST"
-	data-email="ncalvo@college.harvard.edu"
-	action="https://script.google.com/macros/s/AKfycbxmP2lKcfwf10uL-Ghknowoe2S-E9IHtFY5ZhQrG1QCNQdK-ucPqE4QUud_oHDFrE6pdA/exec"
->
-	<fieldset class="pure-group">
-		<textarea id="message" name="message" rows="0" value={timer} />
-		>
-	</fieldset>
-	<button on:click={clickHandler} type="submit"> DONE </button>
-	<script
-		data-cfasync="false"
-		type="text/javascript"
-		src="form-submission-handler.js"
-	></script>
-</form>
+
+<!-- Button for indicating done inputting availability  -->
+<button on:click={clickHandler} type="submit"> DONE </button>
 
 <Modal bind:showModal bind:startTime>
 	<p>
