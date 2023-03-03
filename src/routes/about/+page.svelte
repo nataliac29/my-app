@@ -4,13 +4,7 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET FROM: https://github.com/dwyl/learn-to-
 -->
 <script>
 	// import Modal from "./Modal.svelte";
-	import {
-		Button,
-		Modal,
-		ModalBody,
-		ModalFooter,
-		ModalHeader,
-	} from "sveltestrap";
+	import { Button, Modal, ModalBody, ModalFooter } from "sveltestrap";
 	let showModal = true;
 
 	let columns = new Array(7);
@@ -87,6 +81,24 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET FROM: https://github.com/dwyl/learn-to-
 		isOpen = !isOpen;
 		startTime = Date.now();
 	};
+
+	let conditionalAttributesForYard = {};
+
+	if (isYard) {
+		conditionalAttributesForYard.style =
+			"border-color: yellow; border-style: solid; border-width: medium;";
+	} else {
+		conditionalAttributesForYard.style = "";
+	}
+
+	let conditionalAttributesForSEAS = {};
+
+	if (isSeas) {
+		conditionalAttributesForSEAS.style =
+			"border-color: yellow; border-style: solid; border-width: medium;";
+	} else {
+		conditionalAttributesForYard.style = "";
+	}
 </script>
 
 <svelte:head>
@@ -132,12 +144,12 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET FROM: https://github.com/dwyl/learn-to-
 >
 
 <div class:container={true}>
-	<button on:click={changeLocation} class:button-selected={isYard}>
-		YARD
-	</button>
-	<button on:click={changeLocation} class:button-selected={isSeas}>
-		SEAS
-	</button>
+	<Button
+		color="primary"
+		on:click={changeLocation}
+		{...conditionalAttributesForYard}>YARD</Button
+	>
+	<Button color="success" on:click={changeLocation}>SEAS</Button>
 
 	<table>
 		{#each rows as _row, r}
@@ -157,7 +169,6 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET FROM: https://github.com/dwyl/learn-to-
 
 <style>
 	.container {
-		width: 100%;
 		display: flex;
 		flex-direction: row;
 	}
