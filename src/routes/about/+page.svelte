@@ -8,7 +8,7 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 	let showModal = true;
 
 	let columns = new Array(7);
-	let rows = new Array(30);
+	let rows = new Array(42);
 	let state = new Array(rows.length * columns.length).fill("");
 	let freeState = new Array(rows.length * columns.length).fill("free");
 
@@ -162,7 +162,6 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 					<tr>
 						{#each columns as _column, c}
 							<td
-								style="margin: 5px;"
 								on:mousedown={mouseHandler(r, c)}
 								on:mouseenter={mouseHandler(r, c)}
 								class:seas={state[r * columns.length + c] == "s"}
@@ -185,7 +184,7 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 			</thead>
 			<tbody>
 				{#each rows as _row, r}
-					<tr>
+					<tr style="height:13px">
 						{#each columns as _column, c}
 							<td
 								style="margin: 5px;"
@@ -217,10 +216,8 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 		width: 1200px;
 	}
 	td {
-		width: 5px;
-		height: 5px;
 		background-color: white;
-		margin-right: 5px;
+		padding: 0px;
 	}
 	.seas {
 		background-color: green;
