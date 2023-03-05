@@ -6,7 +6,7 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 	// import Modal from "./Modal.svelte";
 	import { Button, Modal, ModalBody, ModalFooter, Table } from "sveltestrap";
 	let showModal = true;
-	let numRows = 20;
+	let numRows = 42;
 	let numDays = 7;
 	let columns = new Array(numDays);
 	let rows = new Array(numRows);
@@ -222,7 +222,7 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 	>
 
 	<div class:container={true}>
-		<Table bordered>
+		<Table bordered style="margin: 10px">
 			<caption>When are you busy?</caption>
 
 			<thead>
@@ -247,7 +247,7 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 				{/each}
 			</tbody>
 		</Table>
-		<Table bordered>
+		<Table bordered style="margin: 10px">
 			<caption
 				>When you are free, feel free to adjust to your preferences!</caption
 			>
@@ -261,7 +261,32 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 			</thead>
 			<tbody>
 				{#each rows as _row, r}
-					<tr style="height:50px">
+					<tr style="height:12px">
+						{#each columns as _column, c}
+							<td
+								style="margin: 5px;"
+								class:free={freeSeasState[r * columns.length + c] == "free"}
+							/>
+						{/each}
+					</tr>
+				{/each}
+			</tbody>
+		</Table>
+		<Table bordered style="margin: 10px">
+			<caption
+				>When you are free, feel free to adjust to your preferences!</caption
+			>
+
+			<thead>
+				<tr>
+					{#each daysOfWeek as day, i}
+						<td>{day}</td>
+					{/each}
+				</tr>
+			</thead>
+			<tbody>
+				{#each rows as _row, r}
+					<tr style="height:12px">
 						{#each columns as _column, c}
 							<td
 								style="margin: 5px;"
@@ -304,5 +329,9 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 	}
 	.free {
 		background-color: yellow;
+	}
+	.availableContainer {
+		display: flex;
+		flex-direction: column;
 	}
 </style>
