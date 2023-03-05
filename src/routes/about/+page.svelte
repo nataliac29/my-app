@@ -6,11 +6,12 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 	// import Modal from "./Modal.svelte";
 	import { Button, Modal, ModalBody, ModalFooter, Table } from "sveltestrap";
 	let showModal = true;
-
-	let columns = new Array(7);
-	let rows = new Array(42);
+	let numRows = 20;
+	let numDays = 7;
+	let columns = new Array(numDays);
+	let rows = new Array(numRows);
 	let state = new Array(rows.length * columns.length).fill("");
-	let freeState = new Array(rows.length * columns.length).fill("free");
+	let freeSeasState = new Array(rows.length * columns.length).fill("free");
 
 	let daysOfWeek = [
 		"Monday",
@@ -42,15 +43,81 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 	};
 
 	const mouseToggle = (r, c) => {
+		let cellIndex = r * columns.length + c;
+
+		let blockBeforeNotBusy = state[(r - 1) * columns.length + c] == "";
+		let blockAfterNotBusy = state[(r + 1) * columns.length + c] == "";
+		let twoBlocksBeforeNotBusy = state[(r - 2) * columns.length + c] == "";
+		let twoBlocksAfterNotBusy = state[(r + 2) * columns.length + c] == "";
+
+		// if they are marking busy time in SEAS
 		if (isSeas && state[r * columns.length + c] == "s") {
 			state[r * columns.length + c] = "";
-			freeState[r * columns.length + c] = "free";
+			freeSeasState[r * columns.length + c] = "free";
+
+			// if they are erasing busy yard time
 		} else if (isYard && state[r * columns.length + c] == "y") {
 			state[r * columns.length + c] = "";
-			freeState[r * columns.length + c] = "free";
+
+			// there are 4 cases, if the deleted event is in the middle of an existing block, at the end, at the beginning, or is a singlular block
+			// if the clock is in the middle, don't change SEAS availability (still unavailable)
+
+			console.log("THIS IS R");
+			console.log(r);
+			// Case # 1, block is a singular block, or at the ends
+			if (
+				(blockAfterNotBusy || r + 1 == numRows) &&
+				(blockBeforeNotBusy || r == 0)
+			) {
+				freeSeasState[r * columns.length + c] = "free";
+				console.log("HERE IN CASE 1");
+
+				console.log("twoBlocksBeforeNotBusy");
+				console.log(twoBlocksBeforeNotBusy);
+				console.log("twoBlocksAfterNotBusy");
+				console.log(twoBlocksAfterNotBusy);
+				if (twoBlocksBeforeNotBusy || r == 1) {
+					freeSeasState[(r - 1) * columns.length + c] = "free";
+				}
+				if (twoBlocksAfterNotBusy || r == numRows - 2) {
+					freeSeasState[(r + 1) * columns.length + c] = "free";
+				}
+			}
+			// Case #2, if the block is at the end
+			// if at the end, to add a "free" SEAS block below, need to make sure at least an hour to next Yard event
+			else if (
+				blockAfterNotBusy &&
+				twoBlocksAfterNotBusy &&
+				!blockBeforeNotBusy
+			) {
+				console.log("HERE IN CASE 2");
+				freeSeasState[(r + 1) * columns.length + c] = "free";
+				if (r == numRows - 3) {
+					freeSeasState[(r + 2) * columns.length + c] = "free";
+				}
+			}
+			// Case #3, if the block is in the beginning
+			else if (
+				// if at the beginning, to add a "free" SEAS block above, need to make sure at least an hour before previous Yard event
+				!blockAfterNotBusy &&
+				blockBeforeNotBusy &&
+				twoBlocksBeforeNotBusy
+			) {
+				console.log("HERE IN CASE 3");
+
+				freeSeasState[(r - 1) * columns.length + c] = "free";
+				if (r == 2) {
+					freeSeasState[(r - 2) * columns.length + c] = "free";
+				}
+			} else {
+				console.log("HERE AFTER CASE 3");
+			}
+			// if the cell is marked not busy in the busy calendar, marking busy time
 		} else {
 			state[r * columns.length + c] = isSeas ? "s" : "y";
-			freeState[r * columns.length + c] = "";
+			freeSeasState[(r + 1) * columns.length + c] = "";
+			freeSeasState[(r - 1) * columns.length + c] = "";
+			freeSeasState[r * columns.length + c] = "";
 		}
 	};
 
@@ -173,7 +240,9 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 			</tbody>
 		</Table>
 		<Table bordered>
-			<caption>When you are free!</caption>
+			<caption
+				>When you are free, feel free to adjust to your preferences!</caption
+			>
 
 			<thead>
 				<tr>
@@ -184,11 +253,11 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 			</thead>
 			<tbody>
 				{#each rows as _row, r}
-					<tr style="height:13px">
+					<tr style="height:50px">
 						{#each columns as _column, c}
 							<td
 								style="margin: 5px;"
-								class:free={freeState[r * columns.length + c] == "free"}
+								class:free={freeSeasState[r * columns.length + c] == "free"}
 							/>
 						{/each}
 					</tr>
