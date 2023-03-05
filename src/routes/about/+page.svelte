@@ -12,6 +12,7 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 	let rows = new Array(numRows);
 	let state = new Array(rows.length * columns.length).fill("");
 	let freeSeasState = new Array(rows.length * columns.length).fill("free");
+	let freeYardState = new Array(rows.length * columns.length).fill("free");
 
 	let daysOfWeek = [
 		"Monday",
@@ -56,7 +57,60 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 			// if they are marking busy time in SEAS
 			if (isSeas && state[r * columns.length + c] == "s") {
 				state[r * columns.length + c] = "";
-				freeSeasState[r * columns.length + c] = "free";
+
+				// there are 4 cases, if the deleted event is in the middle of an existing block, at the end, at the beginning, or is a singlular block
+				// if the clock is in the middle, don't change SEAS availability (still unavailable)
+
+				console.log("THIS IS R");
+				console.log(r);
+				// Case # 1, block is a singular block, or at the ends
+				if (
+					(blockAfterNotBusy || r + 1 == numRows) &&
+					(blockBeforeNotBusy || r == 0)
+				) {
+					freeYardState[r * columns.length + c] = "free";
+					console.log("HERE IN CASE 1");
+
+					console.log("twoBlocksBeforeNotBusy");
+					console.log(twoBlocksBeforeNotBusy);
+					console.log("twoBlocksAfterNotBusy");
+					console.log(twoBlocksAfterNotBusy);
+					if (twoBlocksBeforeNotBusy || r == 1) {
+						freeYardState[(r - 1) * columns.length + c] = "free";
+					}
+					if (twoBlocksAfterNotBusy || r == numRows - 2) {
+						freeYardState[(r + 1) * columns.length + c] = "free";
+					}
+				}
+				// Case #2, if the block is at the end
+				// if at the end, to add a "free" SEAS block below, need to make sure at least an hour to next Yard event
+				else if (
+					blockAfterNotBusy &&
+					twoBlocksAfterNotBusy &&
+					!blockBeforeNotBusy
+				) {
+					console.log("HERE IN CASE 2");
+					freeYardState[(r + 1) * columns.length + c] = "free";
+					if (r == numRows - 3) {
+						freeYardState[(r + 2) * columns.length + c] = "free";
+					}
+				}
+				// Case #3, if the block is in the beginning
+				else if (
+					// if at the beginning, to add a "free" SEAS block above, need to make sure at least an hour before previous Yard event
+					!blockAfterNotBusy &&
+					blockBeforeNotBusy &&
+					twoBlocksBeforeNotBusy
+				) {
+					console.log("HERE IN CASE 3");
+
+					freeYardState[(r - 1) * columns.length + c] = "free";
+					if (r == 2) {
+						freeYardState[(r - 2) * columns.length + c] = "free";
+					}
+				} else {
+					console.log("HERE AFTER CASE 3");
+				}
 
 				// if they are erasing busy yard time
 			} else if (isYard && state[r * columns.length + c] == "y") {
@@ -118,9 +172,21 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 				// if the cell is marked not busy in the busy calendar, marking busy time
 			} else {
 				state[r * columns.length + c] = isSeas ? "s" : "y";
-				freeSeasState[(r + 1) * columns.length + c] = "";
-				freeSeasState[(r - 1) * columns.length + c] = "";
-				freeSeasState[r * columns.length + c] = "";
+				if (isYard) {
+					freeSeasState[(r + 1) * columns.length + c] = "";
+					freeSeasState[(r - 1) * columns.length + c] = "";
+					freeSeasState[r * columns.length + c] = "";
+
+					freeYardState[r * columns.length + c] = "";
+				}
+				if (isSeas) {
+					freeYardState[(r + 1) * columns.length + c] = "";
+					freeYardState[(r - 1) * columns.length + c] = "";
+					freeYardState[r * columns.length + c] = "";
+
+					freeSeasState[r * columns.length + c] = "";
+				}
+
 				clicked[r * columns.length + c] = true;
 			}
 		}
@@ -249,7 +315,7 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 		</Table>
 		<Table bordered style="margin: 10px">
 			<caption
-				>When you are free, feel free to adjust to your preferences!</caption
+				>When you are free in SEAS, feel free to adjust to your preferences!</caption
 			>
 
 			<thead>
@@ -272,9 +338,9 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 				{/each}
 			</tbody>
 		</Table>
-		<Table bordered style="margin: 10px">
+		<Table bordered style="margin: 10px;">
 			<caption
-				>When you are free, feel free to adjust to your preferences!</caption
+				>When you are free in the Yard, feel free to adjust to your preferences!</caption
 			>
 
 			<thead>
@@ -290,7 +356,7 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 						{#each columns as _column, c}
 							<td
 								style="margin: 5px;"
-								class:free={freeSeasState[r * columns.length + c] == "free"}
+								class:free={freeYardState[r * columns.length + c] == "free"}
 							/>
 						{/each}
 					</tr>
