@@ -8,7 +8,7 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 	import { Dropdown } from "carbon-components-svelte";
 
 	let showModal = true;
-	let numRows = 42;
+	let numRows = 30;
 	let numDays = 7;
 	let columns = new Array(numDays);
 	let rows = new Array(numRows);
@@ -16,63 +16,161 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 	let freeSeasState = new Array(rows.length * columns.length).fill("free");
 	let freeYardState = new Array(rows.length * columns.length).fill("free");
 
-	let daysOfWeek = [
-		"Monday",
-		"Tuesday",
-		"Wednesday",
-		"Thursday",
-		"Friday",
-		"Saturday",
-		"Sunday",
+	const daysOfWeek = [
+		"MON",
+		"TUES",
+		"WED",
+		"THURS",
+		"FRI",
+		"SAT",
+		"SUN",
 	];
+
+	// master list of hours of the day
+	const hoursOfDay = [{id: '0', text: '12:00 AM'}];
+
+	// init hoursOfDay
+	for (let i = 1; i <= 24; i++){
+		if (i < 12){		// AM times
+			hoursOfDay.push({id: i.toString(), text:`${i}:00 AM`});
+		}
+		else if (i == 12){hoursOfDay.push({id: i.toString(), text:`${i}:00 PM`});}
+		else if (i < 24){		// PM times 
+			let j = i%12;
+			hoursOfDay.push({id: i.toString(), text:`${j}:00 PM`});
+		}
+		else{hoursOfDay.push({id: i.toString(), text:`${12}:00 AM`});}
+	}
+
+	console.log(hoursOfDay);
+
 	let isDrag = false;
 	let isYard = true;
 	let isSeas = false;
-	let endTime = null;		//???
-	let startTime = null;		//???
+	let endTime = null;		
+	let startTime = null;		
 	let timer = 0;
 	let clicked = new Array(rows.length * columns.length).fill(false); // keeps track of selected cells in one click
 
+	// the default times chosen are 9 AM to 12 AM
 	let startTimeLabel = 9;
 	let endTimeLabel = 24;
 	let timeLabels = [];
+	let validNewStart = [];
+	let validNewEnd = []; 
 
+	// function for users to choose their start/end times for every day
 	const changeTime = () => {
 		timeLabels = [];
 		for (let i = startTimeLabel; i <= endTimeLabel; i++) {
-			if (i < 12 && i < endTimeLabel){
-				timeLabels.push(`${i}:00 AM`);
-				timeLabels.push(`${i}:30 AM`);
+			if (i < 12 && i < endTimeLabel){		// AM times before endTimeLabel
+				if (i == 0){
+					timeLabels.push(`12:00 AM`);
+					timeLabels.push(``);
+				}
+				else{
+					timeLabels.push(`${i}:00 AM`);
+					timeLabels.push(``);				}
 			}
-			else if (i < endTimeLabel){
-				let j = i%12;
-				timeLabels.push(`${j}:00 PM`);
-				timeLabels.push(`${j}:30 PM`);
+			else if (i < endTimeLabel){		// PM times before endTimeLabel and not 12 PM
+				if (i == 12){
+					timeLabels.push(`${12}:00 PM`);
+					timeLabels.push(``);				}
+				else{
+					let j = i%12;
+					timeLabels.push(`${j}:00 PM`);
+					timeLabels.push(``);				}
 			}
-			else if (endTimeLabel != 24){
-				let j = i%12;
-				timeLabels.push(`${j}:00 PM`);
+			else{		// endTimeLabel does not add additional x:30
+				if (i < 12){timeLabels.push(`${i}:00 AM`)}
+				else if (i == 12){timeLabels.push(`${12}:00 PM`)}
+				else if (i == 24){timeLabels.push(`${12}:00 AM`)}
+				else{
+					let j = i%12;
+					timeLabels.push(`${j}:00 PM`);
+				}
 			}
-			else{
-				timeLabels.push(`${12}:00 AM`);
+		}
+		validNewStart = hoursOfDay.slice(0, endTimeLabel);
+		validNewEnd = hoursOfDay.slice(startTimeLabel+1, 25);
+	}
+
+	// initializing times to 9 AM - 12 AM
+	changeTime();
+
+	// changeStart is a boolean to determine whether the user has changed the start or end time
+	// newTime is the variable they want to change it to
+	const changeTable = (changeStart, newTime) => {
+		let newRows;
+		let changeRows;
+		let changeState;
+		let changeFreeState;
+		if (changeStart){
+			if (newTime < startTimeLabel){		// change to an earlier start time
+				newRows = (startTimeLabel-newTime) * 2; 
+				numRows += newRows; 
+
+				changeRows = new Array(newRows); 
+				changeState = new Array(newRows * columns.length).fill("")
+				changeFreeState = new Array(newRows * columns.length).fill("free")
+				
+				rows = changeRows.concat(rows);
+				state = changeState.concat(state);
+				freeSeasState = changeFreeState.concat(freeSeasState);
+				freeYardState = changeFreeState.concat(freeYardState);
+			} 
+			else{		// change to later state time
+				newRows = (newTime-startTimeLabel) * 2;
+				numRows -= newRows; 
+
+				rows.splice(0,newRows);
+				state.splice(0,newRows);
+				freeSeasState.splice(0,newRows);
+				freeYardState.splice(0,newRows);
+			}
+		}
+		else{
+			if (newTime < endTimeLabel){		// change to earlier end time
+				newRows = (endTimeLabel-newTime) * 2;
+				numRows -= newRows; 
+
+				rows.splice(numRows+1,newRows);
+				state.splice(numRows+1,newRows);
+				freeSeasState.splice(numRows+1,newRows);
+				freeYardState.splice(numRows+1,newRows);
+			}
+			else{		// change to later end time
+				newRows = (newTime-endTimeLabel) * 2; 
+				numRows += newRows; 
+
+				changeRows = new Array(newRows); 
+				changeState = new Array(newRows * columns.length).fill("")
+				changeFreeState = new Array(newRows * columns.length).fill("free")
+				
+				rows = changeRows.concat(rows);
+				state = changeState.concat(state);
+				freeSeasState = changeFreeState.concat(freeSeasState);
+				freeYardState = changeFreeState.concat(freeYardState);
 			}
 		}
 	}
 
-	changeTime();
-	// startTimeLabel = 13;
-	// endTimeLabel = 20;
-	// changeTime();
+	const dropdownStart = (e) => {
+		if (parseInt(e.detail.selectedId) != startTimeLabel){
+			changeTable(true, parseInt(e.detail.selectedId));
+			startTimeLabel = parseInt(e.detail.selectedId);
+			changeTime();
+		}
+	}
 
-	const people = [
-		{ id: 1, name: "Durward Reynolds", unavailable: false },
-		{ id: 2, name: "Kenton Towne", unavailable: false },
-		{ id: 3, name: "Therese Wunsch", unavailable: false },
-		{ id: 4, name: "Benedict Kessler", unavailable: true },
-		{ id: 5, name: "Katelyn Rohan", unavailable: false },
-	];
-
-	let selectedPerson = people[0];
+	const dropdownEnd = (e) => {
+		if (parseInt(e.detail.selectedId) != endTimeLabel){
+			changeTable(false, parseInt(e.detail.selectedId));
+			endTimeLabel = parseInt(e.detail.selectedId);
+			console.log(endTimeLabel);
+			changeTime();
+		}
+	}
 
 	const beginDrag = () => {
 		isDrag = true;
@@ -332,55 +430,61 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 
 	<div class:container={true}>
 		<Table bordered style="margin: 10px">
-			<caption>When are you busy?</caption>
-
-			<thead>
-				<tr>
-					<th scope="col"></th>
-					{#each daysOfWeek as day}
-						<th scope="col">{day}</th>
-					{/each}
-				</tr>
-			</thead>
-			<tbody>
-				{#each rows as _row, r}
-					<tr>
-						{#if r === 0}
-							<th>
-								<Dropdown
-								light
-								selectedId = "9"
-								items={[
-									{ id: "9", text: "9:00 AM" },
-									{ id: "10", text: "10:00 AM" },
-									{ id: "11", text: "11:00 AM" },
-								]}
-								/>
-							</th>
-						{:else if r < rows.length}
-							<th scope="row">{timeLabels[r]}</th>
-						{:else}
-							<th scope="row">hi</th>
-						{/if}
-						{#each columns as _column, c}
-							<td
-								on:mousedown={mouseHandler(r, c)}
-								on:mouseenter={mouseHandler(r, c)}
-								class:seas={state[r * columns.length + c] == "s"}
-								class:yard={state[r * columns.length + c] == "y"}
-							/>
-						{/each}
-					</tr>
-				{/each}
-			</tbody>
-		</Table>
+                <caption>When are you busy?</caption>
+    
+                <thead>
+                    <tr>
+                        <th scope="col"></th>
+                        {#each daysOfWeek as day}
+                            <th scope="col">{day}</th>
+                        {/each}
+                    </tr>
+                </thead>
+                <tbody>
+                    {#each rows as _row, r}
+                        <tr style="height:12px">
+                            {#if r === 0}
+                                <th class="time-label">
+                                    <Dropdown
+                                    size = "sm"
+                                    light
+                                    selectedId = "9"
+                                    items={validNewStart}
+                                    on:select={dropdownStart}
+                                    bind:value={startTimeLabel}
+                                    />
+                                </th>
+                            {:else if r < rows.length-1}
+                                <th class="time-label" scope="row">{timeLabels[r]}</th>
+                            {:else}
+                                <th class="time-label">
+                                    <Dropdown
+                                    size = "sm"
+                                    light
+                                    selectedId = "24"
+                                    items={validNewEnd}
+                                    on:select={dropdownEnd}
+                                    />
+                                </th>
+                            {/if}
+                            {#each columns as _column, c}
+                                <td
+                                    on:mousedown={mouseHandler(r, c)}
+                                    on:mouseenter={mouseHandler(r, c)}
+                                    class:seas={state[r * columns.length + c] == "s"}
+                                    class:yard={state[r * columns.length + c] == "y"}
+                                />
+                            {/each}
+                        </tr>
+                    {/each}
+                </tbody>
+            </Table>
 		<Table bordered style="margin: 10px">
-			<caption
-				>When you are free in SEAS, feel free to adjust to your preferences!</caption
-			>
+			<caption>When you are free in SEAS, feel free to adjust to your preferences!</caption>
 
 			<thead>
 				<tr>
+					<td></td>
 					{#each daysOfWeek as day, i}
 						<td>{day}</td>
 					{/each}
@@ -388,7 +492,8 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 			</thead>
 			<tbody>
 				{#each rows as _row, r}
-					<tr style="height:12px">
+					<tr style="">
+						<th class="time-label" scope="row">{timeLabels[r]}</th>
 						{#each columns as _column, c}
 							<td
 								style="margin: 5px;"
@@ -405,7 +510,9 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 			>
 
 			<thead>
+				<tr></tr>
 				<tr>
+					<td></td>
 					{#each daysOfWeek as day, i}
 						<td>{day}</td>
 					{/each}
@@ -414,6 +521,7 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 			<tbody>
 				{#each rows as _row, r}
 					<tr style="height:12px">
+						<th class="time-label" scope="row">{timeLabels[r]}</th>
 						{#each columns as _column, c}
 							<td
 								style="margin: 5px;"
@@ -447,7 +555,11 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 	td {
 		background-color: white;
 		padding: 0px;
+		/* border-color: #979797; */
 	}
+	/* tbody{
+		border-color: #979797;
+	} */
 	.seas {
 		background-color: green;
 	}
@@ -461,4 +573,16 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 		display: flex;
 		flex-direction: column;
 	}
+	th.time-label {
+		position:relative;
+		top:0;
+		font-weight: bold;
+		font-size: xx-small;
+		width: 60px;
+		height: 15 px;
+		user-select: none;
+		border: none;
+		white-space: nowrap;
+	}
+	
 </style>
