@@ -6,7 +6,7 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 	// import Modal from "./Modal.svelte";
 	import { Button, Modal, ModalBody, ModalFooter, Table } from "sveltestrap";
 	import { Dropdown } from "carbon-components-svelte";
-    import { LOGNAME } from "$env/static/private";
+   // import { LOGNAME } from "$env/static/private";
 
 	let showModal = true;
 	let numRows = 30;
@@ -424,7 +424,7 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 
 <!-- Button for indicating done inputting availability  -->
 <div class:bigContainer={true}>
-	<Button
+	<Button 
 		color={isYard ? "primary" : "secondary"}
 		disabled={isYard ? true : false}
 		on:click={changeLocation}>YARD</Button
@@ -434,6 +434,7 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 		color={isSeas ? "success" : "secondary"}
 		disabled={isSeas ? true : false}>SEAS</Button
 	>
+	<p>You can toggle between the two by clicking 'q'</p>
 
 	<div class:container={true}>
 		<Table bordered style="margin: 10px">
@@ -582,7 +583,7 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 		background-color: blue;
 	}
 	.free {
-		background-color: green;
+		background-color: rgba(0, 128, 0, 0.284);
 	}
 	.availableContainer {
 		display: flex;
@@ -606,5 +607,4 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 		border:none;
 		user-select: none;
 	}
-
 </style>
