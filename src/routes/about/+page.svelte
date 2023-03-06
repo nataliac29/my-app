@@ -6,6 +6,7 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 	// import Modal from "./Modal.svelte";
 	import { Button, Modal, ModalBody, ModalFooter, Table } from "sveltestrap";
 	import { Dropdown } from "carbon-components-svelte";
+    import { LOGNAME } from "$env/static/private";
 
 	let showModal = true;
 	let numRows = 30;
@@ -20,7 +21,7 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 		"MON",
 		"TUES",
 		"WED",
-		"THURS",
+		"THUR",
 		"FRI",
 		"SAT",
 		"SUN",
@@ -30,7 +31,7 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 	const hoursOfDay = [{id: '0', text: '12:00 AM'}];
 
 	// init hoursOfDay
-	for (let i = 1; i <= 24; i++){
+	for (let i = 1; i <= 23; i++){
 		if (i < 12){		// AM times
 			hoursOfDay.push({id: i.toString(), text:`${i}:00 AM`});
 		}
@@ -54,7 +55,7 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 
 	// the default times chosen are 9 AM to 12 AM
 	let startTimeLabel = 9;
-	let endTimeLabel = 24;
+	let endTimeLabel = 23;
 	let timeLabels = [];
 	let validNewStart = [];
 	let validNewEnd = []; 
@@ -66,25 +67,28 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 			if (i < 12 && i < endTimeLabel){		// AM times before endTimeLabel
 				if (i == 0){
 					timeLabels.push(`12:00 AM`);
-					timeLabels.push(``);
+				//	timeLabels.push(``);
 				}
 				else{
 					timeLabels.push(`${i}:00 AM`);
-					timeLabels.push(``);				}
+				//	timeLabels.push(``);				
+				}
 			}
 			else if (i < endTimeLabel){		// PM times before endTimeLabel and not 12 PM
 				if (i == 12){
 					timeLabels.push(`${12}:00 PM`);
-					timeLabels.push(``);				}
+				//	timeLabels.push(``);				
+				}
 				else{
 					let j = i%12;
 					timeLabels.push(`${j}:00 PM`);
-					timeLabels.push(``);				}
+				//	timeLabels.push(``);				
+				}
 			}
 			else{		// endTimeLabel does not add additional x:30
 				if (i < 12){timeLabels.push(`${i}:00 AM`)}
 				else if (i == 12){timeLabels.push(`${12}:00 PM`)}
-				else if (i == 24){timeLabels.push(`${12}:00 AM`)}
+				// else if (i == 24){timeLabels.push(`${12}:00 AM`)}
 				else{
 					let j = i%12;
 					timeLabels.push(`${j}:00 PM`);
@@ -92,7 +96,10 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 			}
 		}
 		validNewStart = hoursOfDay.slice(0, endTimeLabel);
-		validNewEnd = hoursOfDay.slice(startTimeLabel+1, 25);
+		validNewEnd = hoursOfDay.slice(startTimeLabel+1, 24);
+		console.log(timeLabels);
+		console.log(rows);
+
 	}
 
 	// initializing times to 9 AM - 12 AM
@@ -134,10 +141,10 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 				newRows = (endTimeLabel-newTime) * 2;
 				numRows -= newRows; 
 
-				rows.splice(numRows+1,newRows);
-				state.splice(numRows+1,newRows);
-				freeSeasState.splice(numRows+1,newRows);
-				freeYardState.splice(numRows+1,newRows);
+				rows.splice(numRows,newRows);
+				state.splice(numRows,newRows);
+				freeSeasState.splice(numRows,newRows);
+				freeYardState.splice(numRows,newRows);
 			}
 			else{		// change to later end time
 				newRows = (newTime-endTimeLabel) * 2; 
@@ -434,17 +441,17 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
     
                 <thead>
                     <tr>
-                        <th scope="col"></th>
+                        <th class="headers" scope="col"></th>
                         {#each daysOfWeek as day}
-                            <th scope="col">{day}</th>
+                            <th class="headers" scope="col">{day}</th>
                         {/each}
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="main">
                     {#each rows as _row, r}
                         <tr style="height:12px">
-                            {#if r === 0}
-                                <th class="time-label">
+                            {#if r === 0 && r%2 != 1}
+                                <th rowspan="2" class="time-label">
                                     <Dropdown
                                     size = "sm"
                                     light
@@ -454,14 +461,15 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
                                     bind:value={startTimeLabel}
                                     />
                                 </th>
-                            {:else if r < rows.length-1}
-                                <th class="time-label" scope="row">{timeLabels[r]}</th>
-                            {:else}
-                                <th class="time-label">
+                            {:else if r < rows.length-2 && r%2 != 1}
+                                <th rowspan="2" class="time-label" scope="row">{timeLabels[r/2]}</th>
+                            {:else if r == rows.length-2}
+                                <th rowspan="2" class="time-label">
                                     <Dropdown
                                     size = "sm"
                                     light
-                                    selectedId = "24"
+									bind:value={endTimeLabel}
+                                    selectedId = "23"
                                     items={validNewEnd}
                                     on:select={dropdownEnd}
                                     />
@@ -484,16 +492,18 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 
 			<thead>
 				<tr>
-					<td></td>
-					{#each daysOfWeek as day, i}
-						<td>{day}</td>
-					{/each}
+					<th class="headers" scope="col"></th>
+                        {#each daysOfWeek as day}
+                            <th class="headers" scope="col">{day}</th>
+                        {/each}
 				</tr>
 			</thead>
 			<tbody>
 				{#each rows as _row, r}
 					<tr style="">
-						<th class="time-label" scope="row">{timeLabels[r]}</th>
+						{#if r%2 != 1}	
+							<th rowspan="2" class="time-label" scope="row">{timeLabels[r/2]}</th>
+						{/if}
 						{#each columns as _column, c}
 							<td
 								style="margin: 5px;"
@@ -512,18 +522,19 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 			<thead>
 				<tr></tr>
 				<tr>
-					<td></td>
-					{#each daysOfWeek as day, i}
-						<td>{day}</td>
-					{/each}
+					<th class="headers"></th>
+                        {#each daysOfWeek as day}
+                            <th class="headers">{day}</th>
+                        {/each}
 				</tr>
 			</thead>
 			<tbody>
 				{#each rows as _row, r}
 					<tr style="height:12px">
-						<th class="time-label" scope="row">{timeLabels[r]}</th>
-						{#each columns as _column, c}
-							<td
+						{#if r%2 != 1}	
+							<th rowspan="2" class="time-label" scope="row">{timeLabels[r/2]}</th>
+						{/if}						{#each columns as _column, c}
+							<td class="cells"
 								style="margin: 5px;"
 								class:free={freeYardState[r * columns.length + c] == "free"}
 							/>
@@ -557,17 +568,21 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 		padding: 0px;
 		/* border-color: #979797; */
 	}
-	/* tbody{
-		border-color: #979797;
-	} */
+	tbody{
+		border-color: #9797975b;
+	}
+	tbody.main{
+		/* background-color: white; */
+	}
+
 	.seas {
-		background-color: green;
+		background-color: orange;
 	}
 	.yard {
 		background-color: blue;
 	}
 	.free {
-		background-color: yellow;
+		background-color: green;
 	}
 	.availableContainer {
 		display: flex;
@@ -575,6 +590,7 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 	}
 	th.time-label {
 		position:relative;
+		border-style: none;
 		top:0;
 		font-weight: bold;
 		font-size: xx-small;
@@ -584,5 +600,11 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 		border: none;
 		white-space: nowrap;
 	}
-	
+	.headers{
+		width: 15px;
+		font-weight: light;
+		border:none;
+		user-select: none;
+	}
+
 </style>
