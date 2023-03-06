@@ -5,6 +5,8 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 <script>
 	// import Modal from "./Modal.svelte";
 	import { Button, Modal, ModalBody, ModalFooter, Table } from "sveltestrap";
+	import { Dropdown } from "carbon-components-svelte";
+
 	let showModal = true;
 
 	let columns = new Array(7);
@@ -24,10 +26,51 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 	let isDrag = false;
 	let isYard = true;
 	let isSeas = false;
-	let endTime = null;
-	let startTime = null;
+	let endTime = null;		//???
+	let startTime = null;		//???
 	let timer = 0;
 	let clicked = new Array(rows.length * columns.length).fill(false);		// keeps track of selected cells in one click
+
+	let startTimeLabel = 9;
+	let endTimeLabel = 24;
+	let timeLabels = [];
+
+	const changeTime = () => {
+		timeLabels = [];
+		for (let i = startTimeLabel; i <= endTimeLabel; i++) {
+			if (i < 12 && i < endTimeLabel){
+				timeLabels.push(`${i}:00 AM`);
+				timeLabels.push(`${i}:30 AM`);
+			}
+			else if (i < endTimeLabel){
+				let j = i%12;
+				timeLabels.push(`${j}:00 PM`);
+				timeLabels.push(`${j}:30 PM`);
+			}
+			else if (endTimeLabel != 24){
+				let j = i%12;
+				timeLabels.push(`${j}:00 PM`);
+			}
+			else{
+				timeLabels.push(`${12}:00 AM`);
+			}
+		}
+	}
+
+	changeTime();
+	// startTimeLabel = 13;
+	// endTimeLabel = 20;
+	// changeTime();
+
+	const people = [
+		{ id: 1, name: "Durward Reynolds", unavailable: false },
+		{ id: 2, name: "Kenton Towne", unavailable: false },
+		{ id: 3, name: "Therese Wunsch", unavailable: false },
+		{ id: 4, name: "Benedict Kessler", unavailable: true },
+		{ id: 5, name: "Katelyn Rohan", unavailable: false },
+	];
+
+	let selectedPerson = people[0];
 
 	const beginDrag = () => {
 		isDrag = true;
@@ -161,14 +204,32 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 
 			<thead>
 				<tr>
-					{#each daysOfWeek as day, i}
-						<td>{day}</td>
+					<th scope="col"></th>
+					{#each daysOfWeek as day}
+						<th scope="col">{day}</th>
 					{/each}
 				</tr>
 			</thead>
 			<tbody>
 				{#each rows as _row, r}
 					<tr>
+						{#if r === 0}
+							<th>
+								<Dropdown
+								light
+								selectedId = "9"
+								items={[
+									{ id: "9", text: "9:00 AM" },
+									{ id: "10", text: "10:00 AM" },
+									{ id: "11", text: "11:00 AM" },
+								]}
+								/>
+							</th>
+						{:else if r < rows.length}
+							<th scope="row">{timeLabels[r]}</th>
+						{:else}
+							<th scope="row">hi</th>
+						{/if}
 						{#each columns as _column, c}
 							<td
 								style="margin: 5px;"
