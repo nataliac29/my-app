@@ -211,24 +211,16 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 			// if they are marking busy time in SEAS
 			if (isSeas && state[r * columns.length + c] == "s") {
 				state[r * columns.length + c] = "";
-
+				freeSeasState[r * columns.length + c] = "free";
 				// there are 4 cases, if the deleted event is in the middle of an existing block, at the end, at the beginning, or is a singlular block
 				// if the clock is in the middle, don't change SEAS availability (still unavailable)
 
-				console.log("THIS IS R");
-				console.log(r);
 				// Case # 1, block is a singular block, or at the ends
 				if (
 					(blockAfterNotBusy || r + 1 == numRows) &&
 					(blockBeforeNotBusy || r == 0)
 				) {
 					freeYardState[r * columns.length + c] = "free";
-					console.log("HERE IN CASE 1");
-
-					console.log("twoBlocksBeforeNotBusy");
-					console.log(twoBlocksBeforeNotBusy);
-					console.log("twoBlocksAfterNotBusy");
-					console.log(twoBlocksAfterNotBusy);
 					if (twoBlocksBeforeNotBusy || r == 1) {
 						freeYardState[(r - 1) * columns.length + c] = "free";
 					}
@@ -243,7 +235,6 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 					twoBlocksAfterNotBusy &&
 					!blockBeforeNotBusy
 				) {
-					console.log("HERE IN CASE 2");
 					freeYardState[(r + 1) * columns.length + c] = "free";
 					if (r == numRows - 3) {
 						freeYardState[(r + 2) * columns.length + c] = "free";
@@ -256,37 +247,27 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 					blockBeforeNotBusy &&
 					twoBlocksBeforeNotBusy
 				) {
-					console.log("HERE IN CASE 3");
-
 					freeYardState[(r - 1) * columns.length + c] = "free";
 					if (r == 2) {
 						freeYardState[(r - 2) * columns.length + c] = "free";
 					}
-				} else {
-					console.log("HERE AFTER CASE 3");
 				}
 
 				// if they are erasing busy yard time
 			} else if (isYard && state[r * columns.length + c] == "y") {
 				state[r * columns.length + c] = "";
+				freeYardState[r * columns.length + c] = "free";
 
 				// there are 4 cases, if the deleted event is in the middle of an existing block, at the end, at the beginning, or is a singlular block
 				// if the clock is in the middle, don't change SEAS availability (still unavailable)
 
-				console.log("THIS IS R");
-				console.log(r);
 				// Case # 1, block is a singular block, or at the ends
 				if (
 					(blockAfterNotBusy || r + 1 == numRows) &&
 					(blockBeforeNotBusy || r == 0)
 				) {
 					freeSeasState[r * columns.length + c] = "free";
-					console.log("HERE IN CASE 1");
 
-					console.log("twoBlocksBeforeNotBusy");
-					console.log(twoBlocksBeforeNotBusy);
-					console.log("twoBlocksAfterNotBusy");
-					console.log(twoBlocksAfterNotBusy);
 					if (twoBlocksBeforeNotBusy || r == 1) {
 						freeSeasState[(r - 1) * columns.length + c] = "free";
 					}
@@ -301,7 +282,6 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 					twoBlocksAfterNotBusy &&
 					!blockBeforeNotBusy
 				) {
-					console.log("HERE IN CASE 2");
 					freeSeasState[(r + 1) * columns.length + c] = "free";
 					if (r == numRows - 3) {
 						freeSeasState[(r + 2) * columns.length + c] = "free";
@@ -314,14 +294,10 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 					blockBeforeNotBusy &&
 					twoBlocksBeforeNotBusy
 				) {
-					console.log("HERE IN CASE 3");
-
 					freeSeasState[(r - 1) * columns.length + c] = "free";
 					if (r == 2) {
 						freeSeasState[(r - 2) * columns.length + c] = "free";
 					}
-				} else {
-					console.log("HERE AFTER CASE 3");
 				}
 				// if the cell is marked not busy in the busy calendar, marking busy time
 			} else {
@@ -353,6 +329,34 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 		if (e.type === "mousedown") {
 			clicked[r * columns.length + c] = true;
 		}
+	};
+
+	const seasMouseHandler = (r, c) => (e) => {
+		if (isDrag || e.type === "mousedown") {
+			seasMouseToggle(r, c);
+		}
+		if (e.type === "mousedown") {
+			clicked[r * columns.length + c] = true;
+		}
+	};
+
+	const seasMouseToggle = (r, c) => {
+		freeSeasState[r * columns.length + c] =
+			freeSeasState[r * columns.length + c] == "" ? "free" : "";
+	};
+
+	const yardMouseHandler = (r, c) => (e) => {
+		if (isDrag || e.type === "mousedown") {
+			yardMouseToggle(r, c);
+		}
+		if (e.type === "mousedown") {
+			clicked[r * columns.length + c] = true;
+		}
+	};
+
+	const yardMouseToggle = (r, c) => {
+		freeYardState[r * columns.length + c] =
+			freeYardState[r * columns.length + c] == "" ? "free" : "";
 	};
 
 	// when "DONE" button is clicked
@@ -422,19 +426,41 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 	class="modal-dialog"
 >
 	<ModalBody>
-		Click the "Start!" to start the time (or exit the modal), and when you're
-		done, click the "Done" button to stop the time
+		Enter your name, and then click the "Start!" to start the time (or exit the
+		modal), and when you're done, click the "Done" button to stop the time
 	</ModalBody>
 	<ModalFooter>
 		<FormGroup>
 			<Label for="exampleName">Name</Label>
-			<Input type="text" name="name" placeholder="Name" bind:value={name} />
+			<Input
+				type="text"
+				name="name"
+				placeholder="Name"
+				required
+				bind:value={name}
+			/>
 		</FormGroup>
 		<Button color="primary" on:click={toggle}>Start!</Button>
 	</ModalFooter>
 </Modal>
 
 <!-- Button for indicating done inputting availability  -->
+
+<h1>Directions:</h1>
+<h3>Please input when you are busy on the far left!</h3>
+
+<p>
+	For times when you are in the Yard, click "Yard" and enter the times, and then
+	click "SEAS" and enter when you will be at SEAS. We will automatically fill in
+	when you are free (as indicated by a green block) in each of the locations.
+</p>
+<p>
+	We assume that it takes 30 min to get between the Yard (and houses/Quad) and
+	SEAS! You can still manually change your available times in each location!
+</p>
+<p>
+	You can press "q" to toggle more easily! Click "DONE" when you are finished!
+</p>
 <div class:bigContainer={true}>
 	<Button
 		color={isYard ? "primary" : "secondary"}
@@ -443,7 +469,7 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 	>
 	<Button
 		on:click={changeLocation}
-		color={isSeas ? "success" : "secondary"}
+		color={isSeas ? "warning" : "secondary"}
 		disabled={isSeas ? true : false}>SEAS</Button
 	>
 
@@ -503,7 +529,8 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 		</Table>
 		<Table bordered style="margin: 10px">
 			<caption
-				>When you are free in SEAS, feel free to adjust to your preferences!</caption
+				>This reflects when you are free in SEAS; feel free to adjust to your
+				preferences!</caption
 			>
 
 			<thead>
@@ -524,6 +551,8 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 						{/if}
 						{#each columns as _column, c}
 							<td
+								on:mousedown={seasMouseHandler(r, c)}
+								on:mouseenter={seasMouseHandler(r, c)}
 								style="margin: 5px;"
 								class:free={freeSeasState[r * columns.length + c] == "free"}
 							/>
@@ -534,7 +563,8 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 		</Table>
 		<Table bordered style="margin: 10px;">
 			<caption
-				>When you are free in the Yard, feel free to adjust to your preferences!</caption
+				>This reflects when you are free in the Yard; feel free to adjust to
+				your preferences!</caption
 			>
 
 			<thead>
@@ -556,6 +586,8 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 						{/if}
 						{#each columns as _column, c}
 							<td
+								on:mousedown={yardMouseHandler(r, c)}
+								on:mouseenter={yardMouseHandler(r, c)}
 								class="cells"
 								style="margin: 5px;"
 								class:free={freeYardState[r * columns.length + c] == "free"}
