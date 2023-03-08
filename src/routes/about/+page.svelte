@@ -387,6 +387,9 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 			})
 			.join("&");
 		xhr.send(encoded);
+		state = new Array(rows.length * columns.length).fill("");
+		freeSeasState = new Array(rows.length * columns.length).fill("free");
+		freeYardState = new Array(rows.length * columns.length).fill("free");
 	};
 
 	let isOpen = true;
