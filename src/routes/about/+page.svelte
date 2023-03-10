@@ -3,7 +3,6 @@ CODE FOR MODAL ADAPTED FROM: https://svelte.dev/examples/modal
 CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/learn-to-send-email-via-google-script-html-no-server
 -->
 <script>
-	// import Modal from "./Modal.svelte";
 	import {
 		Button,
 		Modal,
@@ -15,8 +14,8 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 		Label,
 	} from "sveltestrap";
 	import { Dropdown } from "carbon-components-svelte";
+	import LocationPreference from "./LocationPreference.svelte";
 
-	let showModal = true;
 	let numRows = 30;
 	let numDays = 7;
 	let columns = new Array(numDays);
@@ -47,8 +46,6 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 		}
 	}
 
-	console.log(hoursOfDay);
-
 	let isDrag = false;
 	let isYard = true;
 	let isSeas = false;
@@ -72,20 +69,16 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 				// AM times before endTimeLabel
 				if (i == 0) {
 					timeLabels.push(`12:00 AM`);
-					//	timeLabels.push(``);
 				} else {
 					timeLabels.push(`${i}:00 AM`);
-					//	timeLabels.push(``);
 				}
 			} else if (i < endTimeLabel) {
 				// PM times before endTimeLabel and not 12 PM
 				if (i == 12) {
 					timeLabels.push(`${12}:00 PM`);
-					//	timeLabels.push(``);
 				} else {
 					let j = i % 12;
 					timeLabels.push(`${j}:00 PM`);
-					//	timeLabels.push(``);
 				}
 			} else {
 				// endTimeLabel does not add additional x:30
@@ -94,7 +87,6 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 				} else if (i == 12) {
 					timeLabels.push(`${12}:00 PM`);
 				}
-				// else if (i == 24){timeLabels.push(`${12}:00 AM`)}
 				else {
 					let j = i % 12;
 					timeLabels.push(`${j}:00 PM`);
@@ -103,8 +95,6 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 		}
 		validNewStart = hoursOfDay.slice(0, endTimeLabel);
 		validNewEnd = hoursOfDay.slice(startTimeLabel + 1, 24);
-		console.log(timeLabels);
-		console.log(rows);
 	};
 
 	// initializing times to 9 AM - 12 AM
@@ -180,7 +170,6 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 		if (parseInt(e.detail.selectedId) != endTimeLabel) {
 			changeTable(false, parseInt(e.detail.selectedId));
 			endTimeLabel = parseInt(e.detail.selectedId);
-			console.log(endTimeLabel);
 			changeTime();
 		}
 	};
@@ -415,9 +404,7 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 	on:mouseup={endDrag}
 	on:keypress={(e) => e.key == "q" && changeLocation()}
 />
-<div hidden={!isOpen}>
-	<Button color="primary" on:click={toggle}>Hello World!</Button>
-</div>
+
 <Modal
 	body
 	{isOpen}
@@ -465,20 +452,24 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 	You can press "q" to toggle more easily! Click "DONE" when you are finished!
 </p>
 <div class:bigContainer={true}>
-	<Button
-		color={isYard ? "primary" : "secondary"}
-		disabled={isYard ? true : false}
-		on:click={changeLocation}>YARD</Button
-	>
-	<Button
-		on:click={changeLocation}
-		color={isSeas ? "warning" : "secondary"}
-		disabled={isSeas ? true : false}>SEAS</Button
-	>
+	<div>
+		<Button
+			style="float:left"
+			color={isYard ? "primary" : "secondary"}
+			disabled={isYard ? true : false}
+			on:click={changeLocation}>YARD
+		</Button>
+		<Button
+			style="display:inline-block"
+			on:click={changeLocation}
+			color={isSeas ? "warning" : "secondary"}
+			disabled={isSeas ? true : false}>SEAS
+		</Button>
+	</div>
 
 	<div class:container={true}>
 		<Table bordered style="margin: 10px">
-			<caption>When are you busy?</caption>
+			<caption>Input your busy times into this table.</caption>
 
 			<thead>
 				<tr>
@@ -530,76 +521,26 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 				{/each}
 			</tbody>
 		</Table>
-		<Table bordered style="margin: 10px">
-			<caption
-				>This reflects when you are free in SEAS; feel free to adjust to your
-				preferences!</caption
-			>
-
-			<thead>
-				<tr>
-					<th class="headers" scope="col" />
-					{#each daysOfWeek as day}
-						<th class="headers" scope="col">{day}</th>
-					{/each}
-				</tr>
-			</thead>
-			<tbody>
-				{#each rows as _row, r}
-					<tr style="">
-						{#if r % 2 != 1}
-							<th rowspan="2" class="time-label" scope="row"
-								>{timeLabels[r / 2]}</th
-							>
-						{/if}
-						{#each columns as _column, c}
-							<td
-								on:mousedown={seasMouseHandler(r, c)}
-								on:mouseenter={seasMouseHandler(r, c)}
-								style="margin: 5px;"
-								class:free={freeSeasState[r * columns.length + c] == "free"}
-							/>
-						{/each}
-					</tr>
-				{/each}
-			</tbody>
-		</Table>
-		<Table bordered style="margin: 10px;">
-			<caption
-				>This reflects when you are free in the Yard; feel free to adjust to
-				your preferences!</caption
-			>
-
-			<thead>
-				<tr />
-				<tr>
-					<th class="headers" />
-					{#each daysOfWeek as day}
-						<th class="headers">{day}</th>
-					{/each}
-				</tr>
-			</thead>
-			<tbody>
-				{#each rows as _row, r}
-					<tr style="height:12px">
-						{#if r % 2 != 1}
-							<th rowspan="2" class="time-label" scope="row"
-								>{timeLabels[r / 2]}</th
-							>
-						{/if}
-						{#each columns as _column, c}
-							<td
-								on:mousedown={yardMouseHandler(r, c)}
-								on:mouseenter={yardMouseHandler(r, c)}
-								class="cells"
-								style="margin: 5px;"
-								class:free={freeYardState[r * columns.length + c] == "free"}
-							/>
-						{/each}
-					</tr>
-				{/each}
-			</tbody>
-		</Table>
+		<LocationPreference 
+			daysOfWeek={daysOfWeek} 
+			rows={rows} 
+			columns={columns}
+			timeLabels={timeLabels} 
+			isDrag={isDrag} 
+			clicked = {clicked}
+			freeLocState={freeSeasState}
+			mouseHandler = {seasMouseHandler}
+		/>
+		<LocationPreference 
+			daysOfWeek={daysOfWeek} 
+			rows={rows} 
+			columns={columns}
+			timeLabels={timeLabels} 
+			isDrag={isDrag} 
+			clicked = {clicked}
+			freeLocState={freeYardState}
+			mouseHandler = {yardMouseHandler}
+		/>
 	</div>
 	<Button on:click={clickHandler} type="submit" color="danger" size="lg"
 		>DONE</Button
@@ -628,22 +569,11 @@ CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/l
 	tbody {
 		border-color: #9797975b;
 	}
-	tbody.main {
-		/* background-color: white; */
-	}
-
 	.seas {
 		background-color: orange;
 	}
 	.yard {
 		background-color: blue;
-	}
-	.free {
-		background-color: green;
-	}
-	.availableContainer {
-		display: flex;
-		flex-direction: column;
 	}
 	th.time-label {
 		position: relative;
