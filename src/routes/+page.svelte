@@ -1,4 +1,6 @@
-<!-- CODE FOR DRAGGIN ADAPTED FROM: https://svelte.dev/repl/801ec208ac3a44a5880ea4c31703b39f?version=3.45.0 
+<!-- 
+USING IBM CARBON SVELTE COMPONENTS: https://carbon-components-svelte.onrender.com/components/Dropdown
+CODE FOR DRAGGIN ADAPTED FROM: https://svelte.dev/repl/801ec208ac3a44a5880ea4c31703b39f?version=3.45.0 
 CODE FOR MODAL ADAPTED FROM: https://svelte.dev/examples/modal
 CODE FOR UPLOADING TIMES TO GOOGLE SHEET ADAPTED FROM: https://github.com/dwyl/learn-to-send-email-via-google-script-html-no-server
 -->
