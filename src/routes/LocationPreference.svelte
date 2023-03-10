@@ -1,15 +1,8 @@
+<!-- The component for the preference tables for SEAS and the Yard -->
 <script>
-	import {
-		Button,
-		Modal,
-		ModalBody,
-		ModalFooter,
-		Table,
-		Input,
-		FormGroup,
-		Label,
-	} from "sveltestrap";
+	import {Table} from "sveltestrap";
 
+	// svelte concept: props
 	export let daysOfWeek;
 	export let rows;
 	export let timeLabels;
@@ -17,14 +10,15 @@
 	export let isDrag;
 	export let clicked;
 	export let columns;
-
 	export let mouseHandler;
+	export let loc;
 
 </script>
 
 <Table bordered style="margin: 10px;">
+	<!-- svelte concept: reactive values -->
 	<caption
-		>This reflects when you are free in the Yard; feel free to adjust to
+		>This reflects when you are free in the {loc}; feel free to adjust to
 		your preferences!</caption
 	>
 
